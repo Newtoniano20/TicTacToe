@@ -9,10 +9,12 @@ class Person {
   }
 }
 class Match {
-  constructor(P1, P2, id) {
+  static lastKey = 0;
+  key;
+  constructor(P1, P2) {
     this.P1 = P1;
     this.P2 = P2;
-    this.id = id;
+    this.id = ++Match.lastKey;
     this.BOARD = ["", "", "", "", "", "", "", "", ""]
   }
 }
@@ -20,45 +22,40 @@ class Match {
 var PLAYERS_ONLINE = []
 var MATCHES = []
 var QUEUE = []
-let player_id = 0;
-let match_id = 0;
-
-
-function NewUser(req, res, next) {
-  let body = req.body;
-  let user = body["user"];
-  let New_user = new Person(user, player_id, null)
-  QUEUE.push(New_user);
-  player_id += 1;
-  res.status(200).send(New_user)
-  next();
-}
+var player_id = 0;
+var match_id = 0;
 
 router.post('/update/:match_id', (req, res, next)=>{
   change = req.body["change"]
   coords = req.body["coords"]
   match_id = req.params.match_id;
-  MATCHES[match_id]["BOARD"][coords] = change
+  MATCHES[match_id-1]["BOARD"][coords] = change
   res.status(200).send("Done")
 })
 
 router.get('/game/:match_id', (req, res, next)=>{
   match_id = req.params.match_id;
-  res.status(200).send(MATCHES[match_id]);
+  res.status(200).send(MATCHES[match_id-1]);
 })
 
-router.post('/auth', NewUser, (req, res)=>{
+router.post('/auth', (req, res)=>{
+  let body = req.body;
+  let user = body["user"];
+  let New_user = new Person(user, player_id, null)
+  QUEUE.push(New_user);
   if (QUEUE.length >= 2) {
     P1 = QUEUE.shift()
     P2 = QUEUE.shift()
-    MATCHES.push(new Match(P1, P2, match_id));
-    P1["match"] = match_id;
-    P2["match"] = match_id;
-    match_id += 1;
+    NEW_MATCH = new Match(P1, P2)
+    MATCHES.push(NEW_MATCH);
+    P1["match"] = NEW_MATCH["id"];
+    P2["match"] = NEW_MATCH["id"];
     PLAYERS_ONLINE.push(P1);
     PLAYERS_ONLINE.push(P2);
   }
+  player_id += 1;
   console.log(MATCHES);
+  res.status(200).send(New_user)
 });
 
 router.get('/queue/:user_id', (req, res, next) => {
@@ -70,10 +67,10 @@ router.get('/queue/:user_id', (req, res, next) => {
     if (PLAYERS_ONLINE[i]["id"] == user_id){
       INGAME = true
       match_id = PLAYERS_ONLINE[i]["match"]
-      if (MATCHES[match_id]["P1"]["id"] == user_id){
-        VS_PLAYER = MATCHES[match_id]["P2"];
+      if (MATCHES[match_id-1]["P1"]["id"] == user_id){
+        VS_PLAYER = MATCHES[match_id-1]["P2"];
       }else{
-        VS_PLAYER = MATCHES[match_id]["P1"];
+        VS_PLAYER = MATCHES[match_id-1]["P1"];
       }
     }
   }
