@@ -14,6 +14,8 @@ class Match {
   constructor(P1, P2) {
     this.P1 = P1;
     this.P2 = P2;
+    this.WON = null
+    this.ended = false
     this.id = ++Match.lastKey;
     this.BOARD = ["", "", "", "", "", "", "", "", ""]
   }
@@ -30,6 +32,15 @@ router.post('/update/:match_id', (req, res, next)=>{
   coords = req.body["coords"]
   match_id = req.params.match_id;
   MATCHES[match_id-1]["BOARD"][coords] = change
+  BOARD = MATCHES[match_id-1]["BOARD"];
+  console.log(BOARD[0], BOARD[1], BOARD[2])
+  WIN_POSSIBILITIES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [6, 4, 2]]
+  for(let POS of WIN_POSSIBILITIES) {
+    if (String(BOARD[POS[0]]) === String(BOARD[POS[1]]) & String(BOARD[POS[1]]) === String(BOARD[POS[2]]) & String(BOARD[POS[1]]) != ""){
+      MATCHES[match_id-1]["ended"] = true
+      MATCHES[match_id-1]["WON"] = String(BOARD[POS[1]])
+    }
+  }
   res.status(200).send("Done")
 })
 
