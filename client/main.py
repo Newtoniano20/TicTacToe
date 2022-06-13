@@ -55,13 +55,8 @@ def set_text(string, coordx, coordy, fontSize): #Function to set text
     textRect = text.get_rect()
     textRect.center = (coordx, coordy) 
     return (text, textRect)
-def INQUEUE_SCREEN():
-    WIN.blit(SPACE, (0, 0))
-    totalText = set_text("IN QUEUE", WIDTH/2, HEIGHT/2, 60)
-    WIN.blit(totalText[0], totalText[1])
-    pygame.display.update()
 
-def IF_ENDED(text):
+def EVENT_SCREEN(text):
     WIN.blit(SPACE, (0, 0))
     totalText = set_text(text, WIDTH/2, HEIGHT/2, 60)
     WIN.blit(totalText[0], totalText[1])
@@ -77,7 +72,6 @@ def update_screen(CURRENT_GAME, VERSUS):
         if place == "o":
             WIN.blit(O_IMAGE, BOARD[index+1])
     pygame.draw.rect(WIN, (0,0,0), BORDER)
-    pygame.display.update()
 
 def server_login():
     return requests.post(url=MAIN_URL+"/auth", data=PROFILE).json()
@@ -96,7 +90,7 @@ def main():
         CHANGE="o"
     while True:
         if IN_QUEUE:
-            INQUEUE_SCREEN()
+            EVENT_SCREEN("IN QUEUE")
             try:
                 QUEUE_STATUS = json.loads(requests.get(str(MAIN_URL)+f"/queue/{PROFILE['id']}").content.decode('utf-8'))
             except:
@@ -113,12 +107,12 @@ def main():
         else:                
             RESPONSE, CURRENT_GAME = server_ask(QUEUE_STATUS)
             if RESPONSE["WON"] == CHANGE:
-                IF_ENDED("YOU WON")
+                EVENT_SCREEN("YOU WON")
                 time.sleep(2)
                 break
 
             elif RESPONSE["WON"] != None and RESPONSE["WON"] != "":
-                IF_ENDED("YOU LOST")
+                EVENT_SCREEN("YOU LOST")
                 time.sleep(2)
                 break
             else:
@@ -131,13 +125,14 @@ def main():
                 pos = pygame.mouse.get_pos()
                 for index in BOARD:
                     coords = BOARD[index]
-                    if coords[0] < pos[0] < coords[0]+140 and coords[1] < pos[1] < coords[1]+150:
+                    if coords[0] < pos[0] < coords[0]+210 and coords[1] < pos[1] < coords[1]+140:
                         if not (CURRENT_GAME[index-1] == "x" or CURRENT_GAME[index-1] == "o"):
                             TO_UPDATE = {
                                 "change": CHANGE,
                                 "coords": index-1
                             }
                             requests.post(url=MAIN_URL+f"/Update/{QUEUE_STATUS['match_id']}", data=TO_UPDATE)
+        pygame.display.update()
         clock.tick(FPS)    
 
 
