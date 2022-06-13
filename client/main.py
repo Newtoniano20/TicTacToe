@@ -123,21 +123,21 @@ def main():
                 break
             else:
                 update_screen(CURRENT_GAME, VERSUS)
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-                        sys.exit()
-                    if event.type == pygame.MOUSEBUTTONUP:
-                        pos = pygame.mouse.get_pos()
-                        for index in BOARD:
-                            coords = BOARD[index]
-                            if coords[0] < pos[0] < coords[0]+140 and coords[1] < pos[1] < coords[1]+200:
-                                if not (CURRENT_GAME[index-1] == "x" or CURRENT_GAME[index-1] == "o"):
-                                    TO_UPDATE = {
-                                        "change": CHANGE,
-                                        "coords": index-1
-                                    }
-                                    requests.post(url=MAIN_URL+f"/Update/{QUEUE_STATUS['match_id']}", data=TO_UPDATE)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONUP and not IN_QUEUE:
+                pos = pygame.mouse.get_pos()
+                for index in BOARD:
+                    coords = BOARD[index]
+                    if coords[0] < pos[0] < coords[0]+140 and coords[1] < pos[1] < coords[1]+150:
+                        if not (CURRENT_GAME[index-1] == "x" or CURRENT_GAME[index-1] == "o"):
+                            TO_UPDATE = {
+                                "change": CHANGE,
+                                "coords": index-1
+                            }
+                            requests.post(url=MAIN_URL+f"/Update/{QUEUE_STATUS['match_id']}", data=TO_UPDATE)
         clock.tick(FPS)    
 
 
