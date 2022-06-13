@@ -34,7 +34,7 @@ PROFILE = {
     "id": None
 }
 CHANGE = ""
-MAIN_URL = "https://tictactoe-newton.herokuapp.com"
+MAIN_URL = "https://tictactoe-newton-europe.herokuapp.com"
 WIDTH, HEIGHT = 900, 500
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("TicTacToe")
@@ -44,7 +44,7 @@ SPACE = pygame.transform.scale((pygame.image.load(os.path.join('BG.png'))), (WID
 X_IMAGE = pygame.transform.scale((pygame.image.load(os.path.join('x.png'))), (190, 130))
 O_IMAGE = pygame.transform.scale((pygame.image.load(os.path.join('O.png'))), (200, 150))
 
-FPS = 10
+FPS = 60
 clock = pygame.time.Clock()
 
 def set_text(string, coordx, coordy, fontSize): #Function to set text
@@ -82,6 +82,10 @@ def update_screen(CURRENT_GAME, VERSUS):
 def server_login():
     return requests.post(url=MAIN_URL+"/auth", data=PROFILE).json()
 
+def server_ask(QUEUE_STATUS):
+    RESPONSE = json.loads(requests.get(str(MAIN_URL)+f"/game/{QUEUE_STATUS['match_id']}").content.decode('utf-8'))
+    return RESPONSE, RESPONSE["BOARD"]
+
 def main():
     CURRENT_GAME = ["", "", "", "", "", "", "", "", ""]
     IN_QUEUE = True
@@ -99,10 +103,15 @@ def main():
                 print("ERROR")
             print(QUEUE_STATUS, "\n")
             if QUEUE_STATUS["ingame"] == True:
+                RESPONSE, CURRENT_GAME = server_ask(QUEUE_STATUS)
                 IN_QUEUE = False
+                if RESPONSE['P1']['Username'] == PROFILE['Username']:
+                    VS_PLAYER = RESPONSE['P2']['Username']
+                else:
+                    VS_PLAYER = RESPONSE['P1']['Username']
+                VERSUS = f"VS: {VS_PLAYER}"
         else:                
-            RESPONSE = json.loads(requests.get(str(MAIN_URL)+f"/game/{QUEUE_STATUS['match_id']}").content.decode('utf-8'))
-            print(RESPONSE)
+            RESPONSE, CURRENT_GAME = server_ask(QUEUE_STATUS)
             if RESPONSE["WON"] == CHANGE:
                 IF_ENDED("YOU WON")
                 time.sleep(2)
@@ -113,12 +122,6 @@ def main():
                 time.sleep(2)
                 break
             else:
-                CURRENT_GAME = RESPONSE["BOARD"] 
-                if RESPONSE['P1']['Username'] == PROFILE['Username']:
-                    VS_PLAYER = RESPONSE['P2']['Username']
-                else:
-                    VS_PLAYER = RESPONSE['P1']['Username']
-                VERSUS = f"VS: {VS_PLAYER}"
                 update_screen(CURRENT_GAME, VERSUS)
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
