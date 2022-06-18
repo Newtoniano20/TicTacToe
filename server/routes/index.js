@@ -5,19 +5,21 @@ class Person {
   constructor(Username, id, match) {
     this.Username = Username;
     this.id = id;
-    this.match = match
+    this.match = match;
   }
 }
 class Match {
   static lastKey = 0;
   key;
   constructor(P1, P2) {
+    this.playing = P1["id"];
+    this.not_playing = P2["id"];
     this.P1 = P1;
     this.P2 = P2;
-    this.WON = null
-    this.ended = false
+    this.WON = null;
+    this.ended = false;
     this.id = ++Match.lastKey;
-    this.BOARD = ["", "", "", "", "", "", "", "", ""]
+    this.BOARD = ["", "", "", "", "", "", "", "", ""];
   }
 }
 
@@ -27,10 +29,15 @@ var QUEUE = []
 var player_id = 0;
 var match_id = 0;
 
-router.post('/update/:match_id', (req, res, next)=>{
+router.post('/update/:match_id/:player_id', (req, res, next)=>{
   change = req.body["change"]
   coords = req.body["coords"]
   match_id = req.params.match_id;
+  playing_id = req.params.player_id;
+  console.log("MATCH ID:", MATCHES[match_id-1]["playing"], "Player ID", playing_id)
+if (MATCHES[match_id-1]["playing"] == playing_id){
+  MATCHES[match_id-1]["playing"] = MATCHES[match_id-1]["not_playing"];
+  MATCHES[match_id-1]["not_playing"] = playing_id;
   MATCHES[match_id-1]["BOARD"][coords] = change
   BOARD = MATCHES[match_id-1]["BOARD"];
   console.log(BOARD[0], BOARD[1], BOARD[2])
@@ -42,6 +49,9 @@ router.post('/update/:match_id', (req, res, next)=>{
     }
   }
   res.status(200).send("Done")
+}else{
+  res.status(101).send("Error: Player is not allowed to move")
+}
 })
 
 router.get('/game/:match_id', (req, res, next)=>{

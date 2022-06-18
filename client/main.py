@@ -9,6 +9,8 @@ from Assets import x, O, BG
 pygame.font.init()
 pygame.mixer.init()
 
+NAME = input("Input your username: ")
+
 with open('BG.png', 'wb+') as outputfile:
     outputfile.write(base64.b64decode(BG))
 with open('O.png', 'wb+') as outputfile:
@@ -28,13 +30,14 @@ BOARD = {
     9: (580, 332)
 }
 PROFILE = {
-    "user": "MOLA",
+    "user": NAME,
     "match_id": None,
     "Match": None,
     "id": None
 }
 CHANGE = ""
 MAIN_URL = "https://tictactoe-newton-europe.herokuapp.com"
+#MAIN_URL = "http://localhost:3000"
 WIDTH, HEIGHT = 900, 500
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("TicTacToe")
@@ -131,9 +134,9 @@ def main():
                                 "change": CHANGE,
                                 "coords": index-1
                             }
-                            requests.post(url=MAIN_URL+f"/Update/{QUEUE_STATUS['match_id']}", data=TO_UPDATE)
+                            requests.post(url=MAIN_URL+f"/Update/{QUEUE_STATUS['match_id']}/{PROFILE['id']}", data=TO_UPDATE)
         pygame.display.update()
-        clock.tick(FPS)    
+        clock.tick(FPS)
 
 
 if __name__ == "__main__":
